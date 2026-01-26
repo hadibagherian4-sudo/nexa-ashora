@@ -1,1 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>تالار گفتگو</h2>
+  <form method="post" action="/forum/post">
+    <textarea name="text" placeholder="متن سوال/پست..."></textarea>
+    <button class="btn btn-primary" style="margin-top:8px">ارسال</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h3>پست‌های تایید شده</h3>
+  {% for p in posts %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <div><b>{{ p.sender_name }}</b> ({{ p.sender_role }}): {{ p.text }}</div>
+      <div style="margin-top:8px;padding-right:12px">
+        {% for r in replies[p.id] %}
+          <div style="padding:6px 0;border-bottom:1px dashed #eee"><b>{{ r.referee_name }}:</b> {{ r.text }}</div>
+        {% endfor %}
+      </div>
+
+      {% if s.role == "referee" %}
+      <form method="post" action="/forum/reply" style="margin-top:10px">
+        <input type="hidden" name="post_id" value="{{ p.id }}">
+        <textarea name="text" placeholder="پاسخ..."></textarea>
+        <button class="btn btn-primary" style="margin-top:8px">ارسال پاسخ</button>
+      </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <p>چیزی نیست</p>
+  {% endfor %}
+</div>
+{% endblock %}
 
