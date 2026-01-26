@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2 style="margin:0 0 8px;">ثبت‌نام کاربر</h2>
-  <div class="muted">اطلاعات زیر را وارد کنید. پس از ثبت‌نام به صفحه ورود برمی‌گردید.</div>
+  <h2 class="h-title"><span class="icon">📝</span> ثبت‌نام کاربر</h2>
+  <div class="muted">پس از ثبت‌نام، به صفحه ورود برمی‌گردید.</div>
 
   {% if error %}
-    <div class="error">{{ error }}</div>
+    <div class="error">⚠️ {{ error }}</div>
   {% endif %}
 
   <form method="post" action="/register">
     <div class="row">
       <div>
-        <label>نام و نام خانوادگی</label>
+        <label><span class="icon">🙍‍♂️</span> نام و نام خانوادگی</label>
         <input name="name" required>
       </div>
       <div>
-        <label>شماره همراه</label>
+        <label><span class="icon">📱</span> شماره همراه</label>
         <input name="phone" placeholder="مثال: 0912xxxxxxx" required>
       </div>
     </div>
 
     <div class="row">
       <div>
-        <label>کد ملی</label>
+        <label><span class="icon">🪪</span> کد ملی</label>
         <input name="nid" placeholder="۱۰ رقم" required>
       </div>
       <div></div>
@@ -30,18 +30,19 @@
 
     <div class="row">
       <div>
-        <label>رمز عبور</label>
+        <label><span class="icon">🔑</span> رمز عبور</label>
         <input type="password" name="password1" required>
       </div>
       <div>
-        <label>تکرار رمز عبور</label>
+        <label><span class="icon">🔁</span> تکرار رمز عبور</label>
         <input type="password" name="password2" required>
       </div>
     </div>
 
-    <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
-      <button class="btn" type="submit">ایجاد حساب</button>
-      <a href="/login" class="muted">بازگشت به ورود</a>
+    <div class="actions">
+      <button class="btn" type="submit">✅ ایجاد حساب</button>
+      <a class="btn secondary" href="/login">↩️ ورود</a>
+      <a class="btn secondary" href="/start">🏠 صفحه شروع</a>
     </div>
   </form>
 </div>
