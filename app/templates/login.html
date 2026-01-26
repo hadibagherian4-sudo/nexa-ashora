@@ -1,52 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <div class="h-title">
-    <span class="icon">🔐</span>
-    <h2 style="margin:0;">ورود به سامانه</h2>
-  </div>
-  <div class="muted">لطفاً نقش و اطلاعات ورود را وارد کنید.</div>
+  <h2>ورود</h2>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <form method="post" action="/auth/login">
+    <label>نقش</label>
+    <select name="role">
+      <option value="user">کاربر</option>
+      <option value="referee">داور</option>
+      <option value="manager">مدیر سامانه</option>
+    </select>
 
-  {% if error %}
-    <div class="error">{{ error }}</div>
-  {% endif %}
+    <label>شماره همراه</label>
+    <input name="phone" required>
 
-  <form method="post" action="/login">
-    <div class="row">
-      <div>
-        <label>🎭 نقش</label>
-        <select name="role" required>
-          <option value="user">👤 کاربر</option>
-          <option value="referee">🧑‍⚖️ داور</option>
-          <option value="manager">🛡️ مدیر سامانه</option>
-        </select>
-      </div>
+    <label>کد ملی (برای داور/مدیر)</label>
+    <input name="nid">
 
-      <div>
-        <label>📱 شماره همراه</label>
-        <input name="phone" placeholder="مثال: 0912xxxxxxx" required>
-      </div>
-    </div>
+    <label>رمز عبور</label>
+    <input name="password" type="password" required>
 
-    <div class="row">
-      <div>
-        <label>🔑 رمز عبور</label>
-        <input type="password" name="password" required>
-      </div>
-
-      <div>
-        <label>🪪 کد ملی (برای داور/مدیر)</label>
-        <input name="nid" placeholder="۱۰ رقم">
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn" type="submit">✅ ورود</button>
-      <a class="btn secondary" href="/start">🏠 صفحه شروع</a>
-      <a class="btn secondary" href="/register">📝 ثبت‌نام کاربر</a>
-      <a class="btn secondary" href="/logout">🚪 خروج</a>
-    </div>
+    <button class="btn primary">ورود</button>
   </form>
 
+  <hr/>
+
+  <h3>ثبت‌نام (فقط کاربر)</h3>
+  <form method="post" action="/auth/signup">
+    <label>نام و نام خانوادگی</label>
+    <input name="name" required>
+
+    <label>شماره همراه</label>
+    <input name="phone" required>
+
+    <label>کد ملی</label>
+    <input name="nid" required>
+
+    <label>رمز عبور</label>
+    <input name="password" type="password" required>
+
+    <label>تکرار رمز عبور</label>
+    <input name="password2" type="password" required>
+
+    <button class="btn">ثبت‌نام</button>
+  </form>
 </div>
 {% endblock %}
