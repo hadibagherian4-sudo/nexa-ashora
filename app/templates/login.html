@@ -1,49 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h2 style="margin:0 0 8px;">ورود به سامانه</h2>
-  <div class="muted">لطفاً نقش و اطلاعات ورود را وارد کنید.</div>
+<div class="card" style="text-align:center; padding:46px 20px;">
+  <img src="/static/logo.png" alt="لوگو سازمان" style="height:110px; width:auto;">
+  <h2 style="margin:14px 0 6px; font-weight:900;">سامانه نکسا</h2>
+  <div class="muted">نظام یکپارچه محتوا عاشورا</div>
 
-  {% if error %}
-    <div class="error">{{ error }}</div>
-  {% endif %}
+  <div class="actions" style="justify-content:center; margin-top:22px;">
+    <a class="btn" href="/login">▶️ شروع</a>
+    <a class="btn secondary" href="/register">📝 ثبت‌نام کاربر</a>
+  </div>
 
-  <form method="post" action="/login">
-    <div class="row">
-      <div>
-        <label>نقش</label>
-        <select name="role" required>
-          <option value="user">کاربر</option>
-          <option value="referee">داور</option>
-          <option value="manager">مدیر سامانه</option>
-        </select>
-      </div>
-      <div>
-        <label>شماره همراه</label>
-        <input name="phone" placeholder="مثال: 0912xxxxxxx" required>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>رمز عبور</label>
-        <input type="password" name="password" required>
-      </div>
-      <div>
-        <label>کد ملی (برای داور/مدیر)</label>
-        <input name="nid" placeholder="۱۰ رقم">
-      </div>
-    </div>
-
-    <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
-      <button class="btn" type="submit">ورود</button>
-
-      <a href="/register" class="btn" style="background:#e9eef5; color:#0b2f4f; text-decoration:none;">
-        ثبت‌نام کاربر
-      </a>
-
-      <a href="/start" class="muted" style="margin-right:auto;">بازگشت به صفحه شروع</a>
-    </div>
-  </form>
+  <div class="alert" style="margin-top:18px;">
+    <div class="muted">اگر قبلاً حساب ساخته‌اید، «شروع» را بزنید و وارد شوید.</div>
+  </div>
 </div>
 {% endblock %}
