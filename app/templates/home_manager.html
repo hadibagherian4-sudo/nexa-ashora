@@ -1,1 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>پنل مدیر</h2>
+
+  <h3>محتواها</h3>
+  {% for it in queue %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <b>{{ it.title }}</b> — {{ it.status }}
+      <a class="btn" href="/content/{{ it.id }}">مشاهده</a>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="panel">
+  <h3>پست‌های تالار در انتظار تایید</h3>
+  {% for p in pend_posts %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <div>{{ p.text }}</div>
+      <form method="post" action="/admin/forum/moderate" style="display:flex;gap:8px;margin-top:8px">
+        <input type="hidden" name="post_id" value="{{ p.id }}">
+        <button class="btn btn-primary" name="action" value="approve">تایید</button>
+        <button class="btn" name="action" value="reject">رد</button>
+      </form>
+    </div>
+  {% else %}
+    <p>موردی نیست</p>
+  {% endfor %}
+</div>
+{% endblock %}
 
