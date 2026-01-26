@@ -1,114 +1,78 @@
-# app/routers/content.py
 import time
-from fastapi import APIRouter, Request, Form, UploadFile, File
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from ..db import get_db
+from ..deps import require_login, status_fa
+from ..models import Submission, SubmissionLike, SubmissionComment
 
-from app.deps import get_session
-from app.db import db_conn
-
-router = APIRouter(prefix="/content")
+router = APIRouter(prefix="/content", tags=["content"])
 templates = Jinja2Templates(directory="app/templates")
 
-def make_id(prefix: str) -> str:
-    return f"{prefix}{int(time.time()*1000)}"
+def make_id(prefix: str):
+    return f"{prefix}{int(time.time() * 1000)}"
 
-@router.get("/{sid}", response_class=HTMLResponse)
-def view_content(request: Request, sid: str):
-    s = get_session(request)
+@router.get("/{sid}")
+def view_content(sid: str, request: Request, auth=Depends(require_login), db: Session = Depends(get_db)):
+    s = db.query(Submission).filter(Submission.id == sid).first()
     if not s:
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/", status_code=303)
 
-    conn = db_conn()
-    row = conn.execute("SELECT * FROM submissions WHERE id=?", (sid,)).fetchone()
-    if row:
-        conn.execute("UPDATE submissions SET views=views+1 WHERE id=?", (sid,))
-        conn.commit()
-        row = conn.execute("SELECT * FROM submissions WHERE id=?", (sid,)).fetchone()
+    # view++ فقط اینجا
+    s.views += 1
+    db.commit()
 
-    comments = conn.execute(
-        "SELECT * FROM submission_comments WHERE submission_id=? ORDER BY created_ts ASC",
-        (sid,)
-    ).fetchall()
-    conn.close()
+    comments = db.query(SubmissionComment).filter(SubmissionComment.submission_id == sid).order_by(SubmissionComment.created_ts.asc()).all()
+    return templates.TemplateResponse("content_view.html", {
+        "request": request, "auth": auth, "s": s, "comments": comments, "status_fa": status_fa
+    })
 
-    return templates.TemplateResponse("content_view.html", {"request": request, "s": s, "row": row, "comments": comments, "error": ""})
+@router.get("/{sid}/download")
+def download_file(sid: str, request: Request, auth=Depends(require_login), db: Session = Depends(get_db)):
+    s = db.query(Submission).filter(Submission.id == sid).first()
+    if not s or not s.file_bytes:
+        return RedirectResponse(f"/content/{sid}", status_code=303)
 
-@router.post("/submit")
-async def submit_content(
-    request: Request,
-    title: str = Form(...),
-    description: str = Form(""),
-    field: str = Form("عمومی"),
-    content_type: str = Form("general"),
-    file: UploadFile | None = File(None),
-):
-    s = get_session(request)
-    if not s or s["role"] != "user":
-        return RedirectResponse("/login", status_code=302)
-
-    file_name, file_mime, file_bytes = "", "", None
-    if file:
-        file_name = file.filename or ""
-        file_mime = file.content_type or ""
-        file_bytes = await file.read()
-
-    sid = make_id("s")
-    conn = db_conn()
-    conn.execute("""
-        INSERT INTO submissions(
-            id,title,description,sender_phone,sender_name,sender_nid,suggested_topic_id,field,content_type,
-            file_name,file_mime,file_bytes,status,likes,views,knowledge_code,created_ts
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'pending',0,0,'',?)
-    """, (
-        sid, title.strip(), description.strip(),
-        s["phone"], s["name"], s.get("nid",""),
-        "", field, content_type,
-        file_name, file_mime, file_bytes, time.time()
-    ))
-    conn.commit()
-    conn.close()
-    return RedirectResponse("/", status_code=302)
+    return Response(
+        content=s.file_bytes,
+        media_type=s.file_mime or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{s.file_name or "file"}"'}
+    )
 
 @router.post("/{sid}/like")
-def like_toggle(request: Request, sid: str):
-    s = get_session(request)
-    if not s or s["role"] != "user":
-        return RedirectResponse("/login", status_code=302)
+def like_toggle(sid: str, request: Request, auth=Depends(require_login), db: Session = Depends(get_db)):
+    existing = db.query(SubmissionLike).filter(
+        SubmissionLike.submission_id == sid,
+        SubmissionLike.user_phone == auth["phone"]
+    ).first()
 
-    conn = db_conn()
-    cur = conn.cursor()
-    existing = cur.execute(
-        "SELECT 1 FROM submission_likes WHERE submission_id=? AND user_phone=?",
-        (sid, s["phone"])
-    ).fetchone()
+    s = db.query(Submission).filter(Submission.id == sid).first()
+    if not s:
+        return RedirectResponse("/", status_code=303)
 
     if existing:
-        cur.execute("DELETE FROM submission_likes WHERE submission_id=? AND user_phone=?", (sid, s["phone"]))
+        db.delete(existing)
     else:
-        cur.execute("INSERT INTO submission_likes(submission_id,user_phone,created_ts) VALUES(?,?,?)", (sid, s["phone"], time.time()))
+        db.add(SubmissionLike(submission_id=sid, user_phone=auth["phone"], created_ts=time.time()))
 
-    cnt = cur.execute("SELECT COUNT(*) FROM submission_likes WHERE submission_id=?", (sid,)).fetchone()[0]
-    cur.execute("UPDATE submissions SET likes=? WHERE id=?", (cnt, sid))
-    conn.commit()
-    conn.close()
-    return RedirectResponse(f"/content/{sid}", status_code=302)
+    db.commit()
+    # recount
+    cnt = db.query(SubmissionLike).filter(SubmissionLike.submission_id == sid).count()
+    s.likes = cnt
+    db.commit()
+
+    return RedirectResponse(f"/content/{sid}", status_code=303)
 
 @router.post("/{sid}/comment")
-def add_comment(request: Request, sid: str, text: str = Form(...)):
-    s = get_session(request)
-    if not s:
-        return RedirectResponse("/login", status_code=302)
-
-    if not text.strip():
-        return RedirectResponse(f"/content/{sid}", status_code=302)
-
-    conn = db_conn()
-    conn.execute("""
-        INSERT INTO submission_comments(id,submission_id,user_name,text,created_ts)
-        VALUES(?,?,?,?,?)
-    """, (make_id("c"), sid, s["name"], text.strip(), time.time()))
-    conn.commit()
-    conn.close()
-    return RedirectResponse(f"/content/{sid}", status_code=302)
-
+def add_comment(sid: str, request: Request, auth=Depends(require_login), db: Session = Depends(get_db), text: str = Form(...)):
+    if text.strip():
+        db.add(SubmissionComment(
+            id=make_id("c"),
+            submission_id=sid,
+            user_name=auth["name"],
+            text=text.strip(),
+            created_ts=time.time()
+        ))
+        db.commit()
+    return RedirectResponse(f"/content/{sid}", status_code=303)
