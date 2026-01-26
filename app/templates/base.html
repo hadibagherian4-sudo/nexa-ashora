@@ -1,40 +1,38 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ title or "نکسا (NEXA)" }}</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/static/app.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{{ title or "NEXA" }}</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
 </head>
-
-<body class="{{ body_class or '' }}">
-  <div class="wrap">
-
-    <div class="topbar">
-      <div class="brand">
-        {# در صفحه landing لوگو داخل منوبار نمایش داده نشود #}
-        {% if not hide_top_logo %}
-          <img src="/static/logo.png" alt="لوگو سازمان">
-        {% endif %}
-
-        <div style="display:flex; flex-direction:column; line-height:1.1;">
-          <div class="brand-title">نکسا (NEXA)</div>
-          <div class="brand-sub">نظام یکپارچه محتوا عاشورا</div>
-        </div>
+<body>
+  <header class="topbar">
+    <div class="brand">نکسا (NEXA) | نظام یکپارچه محتوا عاشورا</div>
+    {% if auth %}
+      <div class="who">
+        <span>{{ auth.name }} ({{ auth.role }})</span>
+        <form method="post" action="/auth/logout" style="display:inline;">
+          <button class="btn primary">خروج</button>
+        </form>
       </div>
+    {% endif %}
+  </header>
 
-      <div class="badge">
-        {{ subtitle or "" }}
-      </div>
-    </div>
+  <nav class="nav">
+    {% if auth %}
+      <a href="/">🏠 صفحه اصلی</a>
+      <a href="/forum">💬 تالار گفتگو</a>
+      <a href="/profile">👤 پروفایل</a>
+      {% if auth.role == "manager" %}
+        <a href="/admin/export/users">📥 اکسل کاربران</a>
+        <a href="/admin/export/referees">📥 اکسل داوران</a>
+      {% endif %}
+    {% endif %}
+  </nav>
 
+  <main class="container">
     {% block content %}{% endblock %}
-
-  </div>
+  </main>
 </body>
 </html>
