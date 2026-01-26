@@ -1,18 +1,13 @@
-# app/config.py
-import os
+from pydantic import BaseModel
 
-# ---- Database ----
-DB_PATH = os.getenv("NEXA_DB_PATH", "nexa.db")
+class Settings(BaseModel):
+    APP_NAME: str = "NEXA"
+    DB_URL: str = "sqlite:///./nexa.db"
+    SESSION_SECRET: str = "CHANGE_ME_TO_A_LONG_RANDOM_SECRET"
 
-# ---- Auth / Cookies ----
-COOKIE_NAME = os.getenv("COOKIE_NAME", "nexa_session")
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "0") == "1"
+    # manager fixed credentials
+    MANAGER_PHONE: str = "09146862029"
+    MANAGER_NID: str = "1362362506"
+    MANAGER_PASSWORD: str = "Hadi136236"
 
-# ---- Manager credentials (ENV) ----
-MANAGER_PHONE = os.getenv("MANAGER_PHONE", "09146862029")
-MANAGER_NID = os.getenv("MANAGER_NID", "1362362506")
-MANAGER_PASSWORD = os.getenv("MANAGER_PASSWORD", "Hadi136236")
-
-# ---- JWT (optional) ----
-JWT_SECRET = os.getenv("NEXA_JWT_SECRET", "CHANGE_ME_SUPER_SECRET")
-JWT_ALG = "HS256"
+settings = Settings()
