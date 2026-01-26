@@ -1,66 +1,64 @@
-# app/routers/forum.py
 import time
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
-from app.deps import get_session
-from app.db import db_conn
+from ..db import get_db
+from ..deps import require_login, require_role, status_fa
+from ..models import ForumPost, ForumReply
 
-router = APIRouter(prefix="/forum")
+router = APIRouter(prefix="/forum", tags=["forum"])
 templates = Jinja2Templates(directory="app/templates")
 
-def make_id(prefix: str) -> str:
-    return f"{prefix}{int(time.time()*1000)}"
+def make_id(prefix: str):
+    return f"{prefix}{int(time.time() * 1000)}"
 
-@router.get("", response_class=HTMLResponse)
-def forum_page(request: Request):
-    s = get_session(request)
-    if not s:
-        return RedirectResponse("/login", status_code=302)
-
-    conn = db_conn()
-    approved = conn.execute("SELECT * FROM forum_posts WHERE status='approved' ORDER BY created_ts DESC").fetchall()
-    replies = {}
+@router.get("")
+def forum_page(request: Request, auth=Depends(require_login), db: Session = Depends(get_db)):
+    approved = db.query(ForumPost).filter(ForumPost.status == "approved").order_by(ForumPost.created_ts.desc()).all()
+    # preload replies
+    replies_map = {}
     for p in approved:
-        replies[p["id"]] = conn.execute("SELECT * FROM forum_replies WHERE post_id=? ORDER BY created_ts ASC", (p["id"],)).fetchall()
-    conn.close()
+        replies_map[p.id] = db.query(ForumReply).filter(ForumReply.post_id == p.id).order_by(ForumReply.created_ts.asc()).all()
 
-    return templates.TemplateResponse("forum.html", {"request": request, "s": s, "posts": approved, "replies": replies})
+    return templates.TemplateResponse("forum.html", {
+        "request": request, "auth": auth,
+        "approved": approved, "replies_map": replies_map,
+        "status_fa": status_fa
+    })
 
 @router.post("/post")
-def add_post(request: Request, text: str = Form(...)):
-    s = get_session(request)
-    if not s:
-        return RedirectResponse("/login", status_code=302)
-
-    if not text.strip():
-        return RedirectResponse("/forum", status_code=302)
-
-    conn = db_conn()
-    conn.execute("""
-        INSERT INTO forum_posts(id,sender_phone,sender_name,sender_role,text,status,created_ts)
-        VALUES(?,?,?,?,?,'pending',?)
-    """, (make_id("fp"), s["phone"], s["name"], s["role"], text.strip(), time.time()))
-    conn.commit()
-    conn.close()
-    return RedirectResponse("/forum", status_code=302)
+def post_message(request: Request, auth=Depends(require_login), db: Session = Depends(get_db), text: str = Form(...)):
+    if text.strip():
+        db.add(ForumPost(
+            id=make_id("fp"),
+            sender_phone=auth["phone"],
+            sender_name=auth["name"],
+            sender_role=auth["role"],
+            text=text.strip(),
+            status="pending",
+            created_ts=time.time()
+        ))
+        db.commit()
+    return RedirectResponse("/forum", status_code=303)
 
 @router.post("/reply")
-def add_reply(request: Request, post_id: str = Form(...), text: str = Form(...)):
-    s = get_session(request)
-    if not s or s["role"] != "referee":
-        return RedirectResponse("/login", status_code=302)
-
-    if not text.strip():
-        return RedirectResponse("/forum", status_code=302)
-
-    conn = db_conn()
-    conn.execute("""
-        INSERT INTO forum_replies(id,post_id,referee_phone,referee_name,text,created_ts)
-        VALUES(?,?,?,?,?,?)
-    """, (make_id("fr"), post_id, s["phone"], s["name"], text.strip(), time.time()))
-    conn.commit()
-    conn.close()
-    return RedirectResponse("/forum", status_code=302)
-
+def reply_message(
+    request: Request,
+    auth=Depends(require_role("referee", "manager")),  # مدیر هم دسترسی کامل دارد
+    db: Session = Depends(get_db),
+    post_id: str = Form(...),
+    text: str = Form(...),
+):
+    if text.strip():
+        db.add(ForumReply(
+            id=make_id("fr"),
+            post_id=post_id,
+            referee_phone=auth["phone"],
+            referee_name=auth["name"],
+            text=text.strip(),
+            created_ts=time.time()
+        ))
+        db.commit()
+    return RedirectResponse("/forum", status_code=303)
