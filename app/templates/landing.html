@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card" style="text-align:center; padding:48px 24px;">
-  <img src="/static/logo.png" alt="لوگو سازمان" style="height:110px; width:auto; margin:0 auto 16px;">
-  <div style="font-size:26px; font-weight:800;">نکسا (NEXA)</div>
-  <div class="muted" style="margin-top:6px;">نظام یکپارچه محتوا عاشورا</div>
+<div class="landing">
+  <div class="landing-card">
+    <img class="landing-logo" src="/static/logo.png" alt="لوگو سازمان">
+    <h1 class="landing-title">نکسا (NEXA)</h1>
+    <div class="landing-sub">نظام یکپارچه محتوا عاشورا</div>
 
-  <div style="margin-top:28px;">
-    <a class="btn" href="/login" style="display:inline-block; text-decoration:none;">شروع</a>
+    <div style="margin-top:18px;">
+      <a class="btn" href="/login">🚀 شروع</a>
+    </div>
   </div>
 </div>
 {% endblock %}
