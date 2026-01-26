@@ -1,14 +1,73 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="landing">
+
+<style>
+  .landing-wrap{
+    min-height: calc(100vh - 120px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 30px 10px;
+  }
+
+  .landing-card{
+    width: 100%;
+    max-width: 620px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 18px;
+    padding: 35px 20px;
+    text-align:center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+
+  .landing-logo{
+    width: 140px;   /* اینجا کوچیکش کردم */
+    height:auto;
+    margin: 0 auto 18px;
+    display:block;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.25));
+  }
+
+  .landing-title{
+    color: #fff;
+    font-size: 26px;
+    font-weight: 900;
+    margin: 0;
+  }
+
+  .landing-sub{
+    color: rgba(255,255,255,.75);
+    margin-top: 8px;
+    font-size: 14px;
+  }
+
+  .landing-actions{
+    margin-top: 20px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .btn.big{
+    padding: 12px 18px;
+    font-size: 15px;
+    border-radius: 14px;
+  }
+</style>
+
+<div class="landing-wrap">
   <div class="landing-card">
-    <img class="landing-logo" src="/static/logo.png" alt="لوگو سازمان">
+    <img src="/static/logo.png" class="landing-logo" alt="لوگو سازمان">
     <h1 class="landing-title">نکسا (NEXA)</h1>
     <div class="landing-sub">نظام یکپارچه محتوا عاشورا</div>
 
-    <div style="margin-top:18px;">
-      <a class="btn" href="/login">🚀 شروع</a>
+    <div class="landing-actions">
+      <a class="btn big" href="/login">شروع</a>
     </div>
   </div>
 </div>
+
 {% endblock %}
