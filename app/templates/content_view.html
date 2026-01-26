@@ -1,32 +1,69 @@
 {% extends "base.html" %}
+{% block title %}مشاهده محتوا | NEXA{% endblock %}
+
 {% block content %}
 <div class="panel">
-  {% if not row %}
-    <p>محتوا پیدا نشد</p>
+  <div class="row spread">
+    <h2>مشاهده محتوا</h2>
+    <a class="btn" href="{{ back_url or '/' }}">⬅️ بازگشت</a>
+  </div>
+
+  {% if flash %}<div class="alert">{{ flash }}</div>{% endif %}
+
+  {% if not content %}
+    <div class="info">محتوا پیدا نشد.</div>
   {% else %}
-    <h2>{{ row.title }}</h2>
-    <p>{{ row.description }}</p>
-    <p>👁 {{ row.views }} ❤️ {{ row.likes }} | وضعیت: {{ row.status }}</p>
+    <div class="card">
+      <div class="card-head">
+        <div class="title">{{ content.title }}</div>
+        <div class="meta">
+          حوزه: {{ content.field }} |
+          نوع: {{ content.content_type }} |
+          کد: {{ content.knowledge_code or "-" }} |
+          بازدید: {{ content.views }}
+        </div>
+      </div>
 
-    {% if s.role == "user" %}
-    <form method="post" action="/content/{{ row.id }}/like">
-      <button class="btn btn-primary">لایک / آنلایک</button>
-    </form>
-    {% endif %}
+      <div class="desc">{{ content.description }}</div>
 
-    <hr>
-    <h3>نظرات</h3>
-    {% for c in comments %}
-      <div style="padding:8px 0;border-bottom:1px solid #eee"><b>{{ c.user_name }}:</b> {{ c.text }}</div>
-    {% else %}
-      <p>نظری نیست</p>
-    {% endfor %}
+      <div class="actions">
+        {% if content.file_name %}
+          <a class="btn btn-primary" href="/content/{{ content.id }}/download">⬇️ دانلود پیوست</a>
+        {% else %}
+          <span class="muted">پیوست ندارد.</span>
+        {% endif %}
 
-    <form method="post" action="/content/{{ row.id }}/comment" style="margin-top:10px">
-      <textarea name="text" placeholder="نظر..."></textarea>
-      <button class="btn btn-primary" style="margin-top:8px">ارسال نظر</button>
-    </form>
+        {% if can_like %}
+          <form method="post" action="/content/{{ content.id }}/like" style="display:inline;">
+            <button class="btn" type="submit">❤️ لایک ({{ content.likes }})</button>
+          </form>
+        {% endif %}
+      </div>
+
+      <div class="comments">
+        <h3>نظرات</h3>
+
+        {% if comments and comments|length>0 %}
+          <ul class="comment-list">
+            {% for c in comments %}
+              <li>
+                <b>{{ c.user_name }}</b>: {{ c.text }}
+                <div class="muted small">{{ c.created_at }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="muted small">نظری ثبت نشده.</div>
+        {% endif %}
+
+        {% if can_comment %}
+          <form method="post" action="/content/{{ content.id }}/comment" class="comment-form">
+            <input name="text" placeholder="نظرت رو بنویس..." required />
+            <button class="btn btn-primary" type="submit">ثبت نظر</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
   {% endif %}
 </div>
 {% endblock %}
-
