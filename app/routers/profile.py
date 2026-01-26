@@ -1,16 +1,10 @@
-# app/routers/profile.py
-from fastapi import APIRouter, Request
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
-from app.deps import get_session
+from ..deps import require_login, status_fa
 
-router = APIRouter()
+router = APIRouter(prefix="/profile", tags=["profile"])
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/profile", response_class=HTMLResponse)
-def profile(request: Request):
-    s = get_session(request)
-    if not s:
-        return RedirectResponse("/login", status_code=302)
-    return templates.TemplateResponse("profile.html", {"request": request, "s": s})
-
+@router.get("")
+def profile(request: Request, auth=Depends(require_login)):
+    return templates.TemplateResponse("profile.html", {"request": request, "auth": auth, "status_fa": status_fa})
