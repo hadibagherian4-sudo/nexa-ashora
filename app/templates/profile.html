@@ -1,10 +1,25 @@
 {% extends "base.html" %}
+{% block title %}پروفایل | NEXA{% endblock %}
+
 {% block content %}
 <div class="panel">
   <h2>پروفایل</h2>
-  <p><b>نام:</b> {{ s.name }}</p>
-  <p><b>شماره:</b> {{ s.phone }}</p>
-  <p><b>نقش:</b> {{ s.role }}</p>
+
+  <div class="card">
+    <div class="row spread">
+      <div>
+        <div class="title">{{ name }}</div>
+        <div class="muted">نقش: <b>{{ role_fa }}</b></div>
+      </div>
+      <form method="post" action="/auth/logout">
+        <button class="btn btn-danger" type="submit">🚪 خروج</button>
+      </form>
+    </div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div class="kv"><span>📞 همراه</span><b>{{ phone }}</b></div>
+      <div class="kv"><span>🪪 کد ملی</span><b>{{ nid or "-" }}</b></div>
+    </div>
+  </div>
 </div>
 {% endblock %}
-
