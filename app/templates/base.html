@@ -68,24 +68,26 @@
 </head>
 <body>
   <div class="wrap">
-<div class="topbar">
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="/static/logo.png" alt="لوگو سازمان"
-         style="height:40px; width:auto; border-radius:8px; background:#fff; padding:4px;">
 
-    <div style="display:flex; flex-direction:column; line-height:1.1;">
-      <div style="font-weight:800;">نکسا (NEXA)</div>
-      <div style="font-size:12px; font-weight:400; opacity:0.85;">
-        نظام یکپارچه محتوا عاشورا
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="/static/logo.png" alt="لوگو سازمان"
+             style="height:40px; width:auto; border-radius:8px; background:#fff; padding:4px;">
+
+        <div style="display:flex; flex-direction:column; line-height:1.1;">
+          <div style="font-weight:800;">نکسا (NEXA)</div>
+          <div style="font-size:12px; font-weight:400; opacity:0.85;">
+            نظام یکپارچه محتوا عاشورا
+          </div>
+        </div>
       </div>
+
+      <div class="muted" style="color:#cfe6ff">{{ subtitle or "" }}</div>
     </div>
-  </div>
 
-  <div class="muted" style="color:#cfe6ff">{{ subtitle or "" }}</div>
-</div>
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
-  </div>  <!-- end .wrap -->
+  </div> <!-- end .wrap -->
 </body>
 </html>
 
