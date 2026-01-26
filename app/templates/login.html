@@ -1,34 +1,85 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="panel">
-  <h2>ورود</h2>
-  {% if error %}<p style="color:#b91c1c;font-weight:900">{{ error }}</p>{% endif %}
+<div class="card">
+  <h2 style="margin:0 0 8px;">ورود به سامانه</h2>
+  <div class="muted">لطفاً نقش و اطلاعات ورود را وارد کنید.</div>
 
-  <form method="post" action="/login" class="grid">
-    <div>
-      <label>نقش</label>
-      <select name="role">
-        <option value="user">کاربر</option>
-        <option value="referee">داور</option>
-        <option value="manager">مدیر</option>
-      </select>
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/login">
+    <div class="row">
+      <div>
+        <label>نقش</label>
+        <select name="role" required>
+          <option value="user">کاربر</option>
+          <option value="referee">داور</option>
+          <option value="manager">مدیر سامانه</option>
+        </select>
+      </div>
+      <div>
+        <label>شماره همراه</label>
+        <input name="phone" placeholder="مثال: 0912xxxxxxx" required>
+      </div>
     </div>
-    <div><label>شماره</label><input name="phone"></div>
-    <div><label>کد ملی (داور/مدیر)</label><input name="nid"></div>
-    <div><label>رمز</label><input type="password" name="password"></div>
-    <div style="grid-column:1/-1"><button class="btn btn-primary" type="submit">ورود</button></div>
+
+    <div class="row">
+      <div>
+        <label>رمز عبور</label>
+        <input type="password" name="password" required>
+      </div>
+      <div>
+        <label>کد ملی (برای داور/مدیر)</label>
+        <input name="nid" placeholder="۱۰ رقم">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <button class="btn" type="submit">ورود</button>
+      <a href="/logout" class="muted" style="margin-right:10px;">خروج</a>
+    </div>
   </form>
 
-  <hr style="margin:18px 0">
-  <h3>ثبت نام (کاربر)</h3>
-  <form method="post" action="/signup" class="grid">
-    <div><label>نام</label><input name="name"></div>
-    <div><label>شماره</label><input name="phone"></div>
-    <div><label>کد ملی</label><input name="nid"></div>
-    <div><label>رمز</label><input type="password" name="password1"></div>
-    <div><label>تکرار</label><input type="password" name="password2"></div>
-    <div style="grid-column:1/-1"><button class="btn btn-primary" type="submit">ثبت نام</button></div>
+  <div class="hr"></div>
+
+  <h3 style="margin:0 0 8px;">ثبت‌نام کاربر</h3>
+  <div class="muted">در صورتی که حساب کاربری ندارید، ثبت‌نام کنید.</div>
+
+  <form method="post" action="/signup">
+    <div class="row">
+      <div>
+        <label>نام و نام خانوادگی</label>
+        <input name="name" required>
+      </div>
+      <div>
+        <label>شماره همراه</label>
+        <input name="phone" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>کد ملی</label>
+        <input name="nid" required>
+      </div>
+      <div></div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>رمز عبور</label>
+        <input type="password" name="password1" required>
+      </div>
+      <div>
+        <label>تکرار رمز عبور</label>
+        <input type="password" name="password2" required>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <button class="btn" type="submit">ایجاد حساب</button>
+    </div>
   </form>
 </div>
 {% endblock %}
-
