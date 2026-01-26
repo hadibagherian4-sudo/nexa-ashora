@@ -35,50 +35,14 @@
       </div>
     </div>
 
-    <div style="margin-top:12px;">
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
       <button class="btn" type="submit">ورود</button>
-      <a href="/logout" class="muted" style="margin-right:10px;">خروج</a>
-    </div>
-  </form>
 
-  <div class="hr"></div>
+      <a href="/register" class="btn" style="background:#e9eef5; color:#0b2f4f; text-decoration:none;">
+        ثبت‌نام کاربر
+      </a>
 
-  <h3 style="margin:0 0 8px;">ثبت‌نام کاربر</h3>
-  <div class="muted">در صورتی که حساب کاربری ندارید، ثبت‌نام کنید.</div>
-
-  <form method="post" action="/signup">
-    <div class="row">
-      <div>
-        <label>نام و نام خانوادگی</label>
-        <input name="name" required>
-      </div>
-      <div>
-        <label>شماره همراه</label>
-        <input name="phone" required>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>کد ملی</label>
-        <input name="nid" required>
-      </div>
-      <div></div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>رمز عبور</label>
-        <input type="password" name="password1" required>
-      </div>
-      <div>
-        <label>تکرار رمز عبور</label>
-        <input type="password" name="password2" required>
-      </div>
-    </div>
-
-    <div style="margin-top:12px;">
-      <button class="btn" type="submit">ایجاد حساب</button>
+      <a href="/start" class="muted" style="margin-right:auto;">بازگشت به صفحه شروع</a>
     </div>
   </form>
 </div>
