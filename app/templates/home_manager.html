@@ -1,31 +1,58 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="panel">
-  <h2>پنل مدیر</h2>
+<div class="card">
+  <h2 class="h-title"><span class="icon">🧑‍💼</span> پنل مدیر سامانه</h2>
+  <div class="muted">خوش آمدید، {{ s.name }} ✅</div>
 
-  <h3>محتواها</h3>
-  {% for it in queue %}
-    <div style="padding:10px;border-bottom:1px solid #eee">
-      <b>{{ it.title }}</b> — {{ it.status }}
-      <a class="btn" href="/content/{{ it.id }}">مشاهده</a>
-    </div>
-  {% endfor %}
-</div>
+  <div class="kpi" style="margin-top:12px;">
+    <div class="box"><div class="num">{{ queue|length }}</div><div class="lbl">📥 کل محتواها</div></div>
+    <div class="box"><div class="num">{{ pend_posts|length }}</div><div class="lbl">💬 پیام‌های تالار در انتظار</div></div>
+    <div class="box"><div class="num">{{ s.phone }}</div><div class="lbl">📱 شماره مدیر</div></div>
+  </div>
 
-<div class="panel">
-  <h3>پست‌های تالار در انتظار تایید</h3>
-  {% for p in pend_posts %}
-    <div style="padding:10px;border-bottom:1px solid #eee">
-      <div>{{ p.text }}</div>
-      <form method="post" action="/admin/forum/moderate" style="display:flex;gap:8px;margin-top:8px">
-        <input type="hidden" name="post_id" value="{{ p.id }}">
-        <button class="btn btn-primary" name="action" value="approve">تایید</button>
-        <button class="btn" name="action" value="reject">رد</button>
-      </form>
-    </div>
+  <div class="actions">
+    <a class="btn secondary" href="/logout">🚪 خروج</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <h3 class="h-title"><span class="icon">📥</span> صف بررسی محتوا</h3>
+  {% if queue %}
+    <table class="table">
+      <thead><tr><th>عنوان</th><th>فرستنده</th><th>حوزه</th><th>وضعیت</th></tr></thead>
+      <tbody>
+      {% for x in queue %}
+        <tr>
+          <td>{{ x.title }}</td>
+          <td><span class="pill">👤 {{ x.sender_name }}</span></td>
+          <td><span class="pill">🏷️ {{ x.field }}</span></td>
+          <td><span class="pill">📌 {{ x.status }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   {% else %}
-    <p>موردی نیست</p>
-  {% endfor %}
+    <div class="muted">چیزی در صف نیست.</div>
+  {% endif %}
+
+  <div class="hr"></div>
+
+  <h3 class="h-title"><span class="icon">💬</span> تالار گفتگو (در انتظار تأیید)</h3>
+  {% if pend_posts %}
+    <table class="table">
+      <thead><tr><th>فرستنده</th><th>نقش</th><th>متن</th></tr></thead>
+      <tbody>
+      {% for p in pend_posts %}
+        <tr>
+          <td>{{ p.sender_name }}</td>
+          <td><span class="pill">👤 {{ p.sender_role }}</span></td>
+          <td>{{ p.text }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="muted">پیامی برای تأیید وجود ندارد.</div>
+  {% endif %}
 </div>
 {% endblock %}
-
