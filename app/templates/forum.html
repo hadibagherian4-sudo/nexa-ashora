@@ -1,92 +1,66 @@
 {% extends "base.html" %}
+{% block title %}تالار گفتگو | NEXA{% endblock %}
+
 {% block content %}
+<div class="panel">
+  <h2>تالار گفتگو و پرسش و پاسخ</h2>
+  <p class="muted">پیام کاربر بعد از تایید مدیر عمومی می‌شود. داور می‌تواند پاسخ عمومی بدهد.</p>
 
-<div class="card">
-  <h2 class="h-title"><span class="icon">💬</span> تالار گفتگو</h2>
-  <div class="muted">سوال یا درخواست خود را بنویسید. پس از بررسی، نمایش داده می‌شود.</div>
+  {% if flash %}<div class="alert">{{ flash }}</div>{% endif %}
 
-  <form method="post" action="/forum/post" style="margin-top:12px;">
-    <label><span class="icon">📝</span> متن پست</label>
-    <textarea name="text" placeholder="متن سوال/پست..." rows="4" required></textarea>
-
-    <div class="actions">
-      <button class="btn" type="submit">📨 ارسال پست</button>
-      <a class="btn secondary" href="/">🏠 بازگشت</a>
-    </div>
-  </form>
-</div>
-
-<div class="card">
-  <h3 class="h-title"><span class="icon">✅</span> پست‌های تأیید شده</h3>
-  <div class="muted">برای هر پست، پاسخ‌ها در زیر همان پست نمایش داده می‌شود.</div>
-
-  {% if posts %}
-    {% for p in posts %}
-      <div style="margin-top:14px; border:1px solid var(--border); border-radius:14px; overflow:hidden;">
-        <!-- هدر پست -->
-        <div style="padding:12px 14px; background:#fafbff; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span class="icon">👤</span>
-            <div>
-              <div style="font-weight:900;">{{ p.sender_name }}</div>
-              <div class="muted" style="margin-top:2px;">
-                نقش: <span class="pill">{{ p.sender_role }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="pill">🗨️ پست شماره {{ p.id }}</div>
-        </div>
-
-        <!-- متن پست -->
-        <div style="padding:14px;">
-          <div style="line-height:1.9; font-size:15px;">{{ p.text }}</div>
-        </div>
-
-        <!-- پاسخ‌ها -->
-        <div style="padding:0 14px 14px;">
-          <div class="muted" style="margin-bottom:8px;">پاسخ‌ها:</div>
-
-          {% if replies[p.id] and replies[p.id]|length > 0 %}
-            {% for r in replies[p.id] %}
-              <div style="padding:10px 12px; border:1px dashed var(--border); border-radius:14px; margin-top:8px; background:#fff;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <span class="icon">🧑‍⚖️</span>
-                  <div style="font-weight:900;">{{ r.referee_name }}</div>
-                  <span class="pill">✅ پاسخ</span>
-                </div>
-                <div style="margin-top:8px; line-height:1.9;">{{ r.text }}</div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="muted">هنوز پاسخی ثبت نشده است.</div>
-          {% endif %}
-        </div>
-
-        <!-- فرم پاسخ داور -->
-        {% if s and s.role == "referee" %}
-          <div style="padding:14px; border-top:1px solid var(--border); background:#fbfbfd;">
-            <h4 class="h-title" style="margin-bottom:6px;"><span class="icon">✍️</span> ارسال پاسخ (ویژه داور)</h4>
-            <form method="post" action="/forum/reply">
-              <input type="hidden" name="post_id" value="{{ p.id }}">
-
-              <label><span class="icon">🧾</span> متن پاسخ</label>
-              <textarea name="text" placeholder="پاسخ خود را بنویسید..." rows="3" required></textarea>
-
-              <div class="actions">
-                <button class="btn" type="submit">📤 ارسال پاسخ</button>
-              </div>
-            </form>
-          </div>
-        {% endif %}
-
-      </div>
-    {% endfor %}
-  {% else %}
-    <div class="alert" style="margin-top:12px;">
-      <div class="muted">فعلاً پستی برای نمایش وجود ندارد.</div>
+  {% if can_post %}
+    <div class="card">
+      <h3>ارسال پیام</h3>
+      <form method="post" action="/forum/post" class="form">
+        <label>پیام</label>
+        <textarea name="text" rows="4" required></textarea>
+        <button class="btn btn-primary" type="submit">ارسال برای تایید</button>
+      </form>
     </div>
   {% endif %}
-</div>
 
+  <div class="card">
+    <h3>پیام‌های تایید شده</h3>
+    {% if not approved_posts %}
+      <div class="info">هنوز پیامی تایید نشده.</div>
+    {% else %}
+      <div class="stack">
+        {% for p in approved_posts %}
+          <div class="post">
+            <div class="row spread">
+              <div>
+                <b>{{ p.sender_name }}</b>
+                <span class="muted small">({{ p.sender_role_fa }})</span>
+              </div>
+              <div class="muted small">{{ p.created_at }}</div>
+            </div>
+
+            <div class="desc">{{ p.text }}</div>
+
+            {% if p.replies and p.replies|length>0 %}
+              <div class="replies">
+                <h4>پاسخ‌ها</h4>
+                {% for r in p.replies %}
+                  <div class="reply">
+                    <b>👨‍🏫 {{ r.referee_name }}</b>
+                    <div>{{ r.text }}</div>
+                    <div class="muted small">{{ r.created_at }}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if is_referee %}
+              <form method="post" action="/forum/{{ p.id }}/reply" class="form reply-form">
+                <label>پاسخ داور (عمومی)</label>
+                <input name="text" required placeholder="پاسخ را بنویسید..." />
+                <button class="btn btn-primary" type="submit">ثبت پاسخ</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
