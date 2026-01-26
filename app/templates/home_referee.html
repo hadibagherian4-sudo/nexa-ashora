@@ -1,15 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="panel">
-  <h2>پنل داور — {{ s.name }}</h2>
-  {% for t in tasks %}
-    <div style="padding:10px;border-bottom:1px solid #eee">
-      <b>{{ t.title }}</b> — وضعیت: {{ t.status }}
-      <div class="muted">{{ t.description }}</div>
-    </div>
+<div class="card">
+  <h2 class="h-title"><span class="icon">🧑‍⚖️</span> پنل داور</h2>
+  <div class="muted">خوش آمدید، {{ s.name }} | حوزه: {{ s.field }}</div>
+
+  <div class="kpi" style="margin-top:12px;">
+    <div class="box"><div class="num">{{ tasks|length }}</div><div class="lbl">📌 ارجاعات من</div></div>
+    <div class="box"><div class="num">{{ s.phone }}</div><div class="lbl">📱 شماره داور</div></div>
+    <div class="box"><div class="num">{{ s.nid }}</div><div class="lbl">🪪 کد ملی</div></div>
+  </div>
+
+  <div class="actions">
+    <a class="btn secondary" href="/logout">🚪 خروج</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <h3 class="h-title"><span class="icon">📌</span> لیست ارجاعات</h3>
+  {% if tasks %}
+    <table class="table">
+      <thead><tr><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+      <tbody>
+      {% for t in tasks %}
+        <tr>
+          <td>{{ t.title }}</td>
+          <td><span class="pill">📌 {{ t.decision }}</span></td>
+          <td><span class="pill">🕒 {{ t.created_ts }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   {% else %}
-    <p>تسکی نیست</p>
-  {% endfor %}
+    <div class="muted">فعلاً ارجاعی برای شما ثبت نشده است.</div>
+  {% endif %}
 </div>
 {% endblock %}
-
