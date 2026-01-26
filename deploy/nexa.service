@@ -4,15 +4,15 @@ After=network.target
 
 [Service]
 User=ubuntu
-WorkingDirectory=/home/ubuntu/nexa-ashora
+WorkingDirectory=/home/ubuntu/nexa-fastapi
 
 Environment="NEXA_JWT_SECRET=CHANGE_ME"
-Environment="NEXA_MANAGER_PHONE=09xxxxxxxxxx"
+Environment="NEXA_MANAGER_PHONE=09xxxxxxxxx"
 Environment="NEXA_MANAGER_NID=xxxxxxxxxx"
 Environment="NEXA_MANAGER_PASSWORD=xxxxxxxx"
 Environment="NEXA_COOKIE_SECURE=0"
 
-ExecStart=/home/ubuntu/nexa-ashora/venv/bin/gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 127.0.0.1:8000 --workers 4 --timeout 120
+ExecStart=/home/ubuntu/nexa-fastapi/venv/bin/gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 127.0.0.1:8000 --workers 4 --timeout 120
 Restart=always
 
 [Install]
