@@ -1,1 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>پنل داور — {{ s.name }}</h2>
+  {% for t in tasks %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <b>{{ t.title }}</b> — وضعیت: {{ t.status }}
+      <div class="muted">{{ t.description }}</div>
+    </div>
+  {% else %}
+    <p>تسکی نیست</p>
+  {% endfor %}
+</div>
+{% endblock %}
 
