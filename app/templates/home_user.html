@@ -1,58 +1,254 @@
 {% extends "base.html" %}
+{% block title %}پنل کاربر | NEXA{% endblock %}
+
 {% block content %}
-<div class="card">
-  <h2 class="h-title"><span class="icon">👤</span> پنل کاربر</h2>
-  <div class="muted">خوش آمدید، {{ s.name }} ✨</div>
+<div class="panel">
+  <h2>پنل کاربر</h2>
+  <p class="muted">سلام {{ user_name }} 👋 | {{ user_phone }}</p>
 
-  <div class="kpi" style="margin-top:12px;">
-    <div class="box"><div class="num">{{ published|length }}</div><div class="lbl">📚 ویترین منتشر شده</div></div>
-    <div class="box"><div class="num">{{ mysubs|length }}</div><div class="lbl">📤 ارسال‌های من</div></div>
-    <div class="box"><div class="num">{{ s.phone }}</div><div class="lbl">📱 شماره همراه</div></div>
-  </div>
-
-  <div class="actions">
-    <a class="btn secondary" href="/logout">🚪 خروج</a>
-  </div>
-
-  <div class="hr"></div>
-
-  <h3 class="h-title"><span class="icon">📚</span> ویترین دانش</h3>
-  {% if published %}
-    <table class="table">
-      <thead><tr><th>عنوان</th><th>حوزه</th><th>نوع</th><th>کد</th></tr></thead>
-      <tbody>
-      {% for x in published %}
-        <tr>
-          <td>{{ x.title }}</td>
-          <td><span class="pill">🏷️ {{ x.field }}</span></td>
-          <td><span class="pill">🧾 {{ x.content_type }}</span></td>
-          <td><span class="pill">🔖 {{ x.knowledge_code or "-" }}</span></td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <div class="muted">فعلاً محتوایی منتشر نشده است.</div>
+  {% if flash %}
+    <div class="alert">{{ flash }}</div>
   {% endif %}
 
-  <div class="hr"></div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-showcase">ویترین دانش</button>
+    <button class="tab-btn" data-tab="tab-submit">ارسال محتوا</button>
+    <button class="tab-btn" data-tab="tab-track">وضعیت پیگیری</button>
+    <button class="tab-btn" data-tab="tab-topics">پیشنهاد موضوعات</button>
+    <button class="tab-btn" data-tab="tab-research">تحقیقات</button>
+  </div>
 
-  <h3 class="h-title"><span class="icon">📤</span> ارسال‌های من</h3>
-  {% if mysubs %}
-    <table class="table">
-      <thead><tr><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
-      <tbody>
-      {% for x in mysubs %}
-        <tr>
-          <td>{{ x.title }}</td>
-          <td><span class="pill">📌 {{ x.status }}</span></td>
-          <td><span class="pill">🕒 {{ x.created_ts }}</span></td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <div class="muted">هنوز محتوایی ارسال نکرده‌اید.</div>
-  {% endif %}
+  <!-- ===================== ویترین دانش ===================== -->
+  <section id="tab-showcase" class="tab active">
+    <h3>ویترین دانش (منتشر شده)</h3>
+
+    {% if not published %}
+      <div class="info">فعلاً محتوایی منتشر نشده.</div>
+    {% else %}
+      <div class="grid">
+        {% for s in published %}
+          <div class="card">
+            <div class="card-head">
+              <div class="title">{{ s.title }}</div>
+              <div class="meta">
+                <span>{{ s.field }}</span> |
+                <span>{{ s.content_type }}</span> |
+                <span>کد دانشی: {{ s.knowledge_code or "-" }}</span>
+              </div>
+            </div>
+
+            <div class="desc">{{ s.description }}</div>
+
+            <div class="actions">
+              <a class="btn" href="/content/{{ s.id }}">🔎 مشاهده محتوا</a>
+
+              <form method="post" action="/content/{{ s.id }}/like" style="display:inline;">
+                <button class="btn btn-like" type="submit">❤️ لایک ({{ s.likes }})</button>
+              </form>
+            </div>
+
+            <div class="comments">
+              <h4>نظرات</h4>
+              {% if s.comments and s.comments|length > 0 %}
+                <ul class="comment-list">
+                  {% for c in s.comments %}
+                    <li>
+                      <b>{{ c.user_name }}</b>: {{ c.text }}
+                      <div class="muted small">{{ c.created_at }}</div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="muted small">نظری ثبت نشده.</div>
+              {% endif %}
+
+              <form method="post" action="/content/{{ s.id }}/comment" class="comment-form">
+                <input name="text" placeholder="نظرت رو بنویس..." required />
+                <button class="btn btn-primary" type="submit">ثبت نظر</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- ===================== ارسال محتوا ===================== -->
+  <section id="tab-submit" class="tab">
+    <h3>ارسال محتوا</h3>
+
+    <form method="post" action="/content/submit" enctype="multipart/form-data" class="form">
+      <label>انتخاب از پیشنهادات مدیر (اختیاری)</label>
+      <select name="suggested_topic_id">
+        <option value="">(بدون انتخاب موضوع)</option>
+        {% for t in topics %}
+          <option value="{{ t.id }}">{{ t.title }} | {{ t.field }}</option>
+        {% endfor %}
+      </select>
+
+      <label>عنوان</label>
+      <input name="title" required />
+
+      <label>توضیحات</label>
+      <textarea name="description" rows="4"></textarea>
+
+      <label>کمیته / حوزه تخصصی</label>
+      <select name="field" required>
+        {% for f in fields %}
+          <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+
+      <label>نوع محتوا</label>
+      <select name="content_type" required>
+        {% for ct in content_types %}
+          <option value="{{ ct }}">{{ ct }}</option>
+        {% endfor %}
+      </select>
+
+      <label>پیوست فایل (اختیاری)</label>
+      <input type="file" name="file" />
+
+      <button class="btn btn-primary" type="submit">ثبت و ارسال</button>
+    </form>
+  </section>
+
+  <!-- ===================== وضعیت پیگیری ===================== -->
+  <section id="tab-track" class="tab">
+    <h3>وضعیت پیگیری + ویرایش پس از نیاز به اصلاح</h3>
+
+    {% if not my_submissions %}
+      <div class="info">هنوز محتوایی ارسال نکردی.</div>
+    {% else %}
+      <div class="stack">
+        {% for s in my_submissions %}
+          <div class="card">
+            <div class="card-head">
+              <div class="title">{{ s.title }}</div>
+              <div class="meta">
+                وضعیت: <b>{{ s.status_fa }}</b> |
+                حوزه: {{ s.field }} |
+                نوع: {{ s.content_type }}
+              </div>
+            </div>
+
+            <div class="desc">{{ s.description }}</div>
+
+            {% if s.assignments and s.assignments|length > 0 %}
+              <div class="review-box">
+                <h4>نتایج داوران</h4>
+                <ul class="small">
+                  {% for a in s.assignments %}
+                    <li>
+                      <b>{{ a.referee_name }}</b> ({{ a.referee_field }}) |
+                      امتیاز: {{ a.score }} |
+                      نتیجه: {{ a.decision }}
+                      {% if a.feedback %}<div>📝 {{ a.feedback }}</div>{% endif %}
+                      {% if a.suggested_knowledge_code %}<div class="muted">کد پیشنهادی: {{ a.suggested_knowledge_code }}</div>{% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+
+            {% if s.status == "published" %}
+              <div class="ok">✅ منتشر شده | کد دانشی: {{ s.knowledge_code }}</div>
+            {% endif %}
+
+            {% if s.status == "correction_needed" %}
+              <details class="details">
+                <summary>✏️ ویرایش و ارسال مجدد</summary>
+                <form method="post" action="/content/{{ s.id }}/resubmit" enctype="multipart/form-data" class="form">
+                  <label>عنوان</label>
+                  <input name="title" value="{{ s.title }}" required />
+
+                  <label>توضیحات</label>
+                  <textarea name="description" rows="4">{{ s.description }}</textarea>
+
+                  <label>کمیته / حوزه تخصصی</label>
+                  <select name="field" required>
+                    {% for f in fields %}
+                      <option value="{{ f }}" {% if f == s.field %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                  </select>
+
+                  <label>نوع محتوا</label>
+                  <select name="content_type" required>
+                    {% for ct in content_types %}
+                      <option value="{{ ct }}" {% if ct == s.content_type %}selected{% endif %}>{{ ct }}</option>
+                    {% endfor %}
+                  </select>
+
+                  <label>پیوست جدید (اختیاری)</label>
+                  <input type="file" name="file" />
+
+                  <button class="btn btn-primary" type="submit">ارسال مجدد برای مدیر</button>
+                </form>
+              </details>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- ===================== پیشنهاد موضوعات ===================== -->
+  <section id="tab-topics" class="tab">
+    <h3>پیشنهاد موضوعات</h3>
+    {% if not topics %}
+      <div class="info">موضوعی ثبت نشده.</div>
+    {% else %}
+      <div class="stack">
+        {% for t in topics %}
+          <div class="card">
+            <div class="title">{{ t.title }}</div>
+            <div class="meta">حوزه: {{ t.field }}</div>
+            <div class="desc">{{ t.description }}</div>
+
+            {% if t.file_name %}
+              <a class="btn" href="/admin/topics/{{ t.id }}/download">⬇️ دانلود پیوست</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- ===================== تحقیقات ===================== -->
+  <section id="tab-research" class="tab">
+    <h3>تحقیقات صورت گرفته</h3>
+    {% if not researches %}
+      <div class="info">تحقیقی ثبت نشده.</div>
+    {% else %}
+      <div class="stack">
+        {% for r in researches %}
+          <div class="card">
+            <div class="title">{{ r.title }}</div>
+            <div class="meta">حوزه: {{ r.field }}</div>
+            <div class="desc">{{ r.summary }}</div>
+
+            {% if r.file_name %}
+              <a class="btn" href="/admin/research/{{ r.id }}/download">⬇️ دانلود فایل</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
 </div>
+
+<script>
+  // Tabs
+  const btns = document.querySelectorAll(".tab-btn");
+  const tabs = document.querySelectorAll(".tab");
+  btns.forEach(b => {
+    b.addEventListener("click", () => {
+      btns.forEach(x => x.classList.remove("active"));
+      tabs.forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      document.getElementById(b.dataset.tab).classList.add("active");
+    });
+  });
+</script>
 {% endblock %}
