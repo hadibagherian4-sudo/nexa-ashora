@@ -4,18 +4,22 @@
   --text:#101828;
   --muted:#667085;
   --border:#e6e8ee;
+
   --brand:#0b2f4f;
   --brand2:#0f3f66;
   --accent:#f1b61a;
+
   --danger:#c62828;
-  --radius:16px;
-  --shadow:0 10px 30px rgba(16,24,40,.08);
+
+  --radius:18px;
+  --shadow:0 14px 40px rgba(16,24,40,.10);
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
 body{
-  font-family: "Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family:"Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background:var(--bg);
   color:var(--text);
   margin:0;
@@ -23,10 +27,17 @@ body{
   text-align:right;
 }
 
-a{color:inherit}
-.wrap{max-width: 1060px; margin: 22px auto; padding: 0 16px;}
+/* برای صفحه Start: بک‌گراند هم‌رنگ نوار بالا */
+body.is-landing{
+  background: linear-gradient(135deg, var(--brand), var(--brand2));
+}
+
+a{color:inherit; text-decoration:none}
+.wrap{max-width:1100px; margin:24px auto; padding:0 16px;}
+
+/* Topbar */
 .topbar{
-  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  background: linear-gradient(135deg, var(--brand), var(--brand2));
   color:#fff;
   border-radius:var(--radius);
   padding:14px 16px;
@@ -34,18 +45,24 @@ a{color:inherit}
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  box-shadow: var(--shadow);
+  box-shadow:var(--shadow);
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
+/* برند */
+.brand{display:flex; align-items:center; gap:12px;}
+.brand img{
+  height:44px;
+  width:auto;
+  border-radius:14px;
+  /* لوگو پشت سفید نباشه */
+  background:transparent;
+  padding:0;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.15));
 }
-.brand img{height:44px; width:auto; border-radius:12px;}
 .brand-title{font-weight:900; font-size:18px; line-height:1.1}
 .brand-sub{font-size:12px; opacity:.85; margin-top:2px}
 
+/* Badge سمت راست */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -58,15 +75,17 @@ a{color:inherit}
   white-space:nowrap;
 }
 
+/* Card */
 .card{
   background:var(--card);
   border-radius:var(--radius);
   padding:18px;
   margin-top:14px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
 }
 
+/* عنوان‌های بخش‌ها */
 .h-title{
   display:flex;
   align-items:center;
@@ -75,50 +94,70 @@ a{color:inherit}
   font-weight:900;
 }
 .icon{
-  width:34px;
-  height:34px;
-  border-radius:12px;
+  width:36px;
+  height:36px;
+  border-radius:14px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   background:#f2f4f7;
   border:1px solid var(--border);
+  transition:transform .18s ease, box-shadow .18s ease;
 }
+.icon:hover{transform:translateY(-1px); box-shadow:0 10px 18px rgba(16,24,40,.10);}
 
 .muted{color:var(--muted); font-size:13px}
 .hr{height:1px; background:var(--border); margin:16px 0}
 
-label{display:flex; align-items:center; gap:8px; font-weight:700; margin: 12px 0 6px; color:#344054}
+/* فرم */
+label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:800;
+  margin:12px 0 6px;
+  color:#344054;
+}
 input, select, textarea{
   width:100%;
   padding:11px 12px;
   border:1px solid var(--border);
-  border-radius:12px;
+  border-radius:14px;
   outline:none;
-  font-family: inherit;
+  font-family:inherit;
   font-size:14px;
   background:#fff;
   direction:rtl;
   text-align:right;
+  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
 }
-input:focus, select:focus, textarea:focus{border-color:#b7c2d0; box-shadow:0 0 0 4px rgba(15,63,102,.08)}
+textarea{min-height:110px; resize:vertical;}
+input:focus, select:focus, textarea:focus{
+  border-color:#b7c2d0;
+  box-shadow:0 0 0 5px rgba(15,63,102,.10);
+}
+input:hover, select:hover, textarea:hover{transform:translateY(-1px);}
 
-.row{display:grid; grid-template-columns: 1fr 1fr; gap: 12px;}
-@media (max-width: 720px){ .row{grid-template-columns:1fr;} .topbar{flex-direction:column; align-items:stretch} }
+.row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media (max-width: 820px){
+  .row{grid-template-columns:1fr;}
+  .topbar{flex-direction:column; align-items:stretch}
+}
 
+/* دکمه‌ها */
+.actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px}
 .btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
   padding:10px 14px;
-  border-radius:12px;
+  border-radius:14px;
   border:1px solid transparent;
   cursor:pointer;
   font-weight:900;
   background:var(--accent);
   color:#1d1d1d;
-  text-decoration:none;
 }
 .btn:hover{filter:brightness(.97)}
 .btn.secondary{
@@ -126,35 +165,65 @@ input:focus, select:focus, textarea:focus{border-color:#b7c2d0; box-shadow:0 0 0
   border-color:var(--border);
   color:#0b2f4f;
 }
+.btn.link{
+  background:transparent;
+  border-color:transparent;
+  color:#fff;
+  padding:8px 10px;
+  opacity:.95;
+}
 .btn.danger{
   background:#ffecec;
   border-color:#ffd2d2;
   color:var(--danger);
 }
 
-.actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px}
-
 .alert{
   padding:10px 12px;
-  border-radius:12px;
+  border-radius:14px;
   border:1px solid var(--border);
   background:#fbfbfd;
 }
 .error{color:var(--danger); font-weight:900; margin-top:10px}
-.kpi{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px}
-@media (max-width: 720px){ .kpi{grid-template-columns:1fr} }
-.kpi .box{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  background:#fff;
-}
-.kpi .num{font-size:22px; font-weight:900}
-.kpi .lbl{color:var(--muted); font-size:13px}
-.table{width:100%; border-collapse:collapse; margin-top:10px}
-.table th,.table td{border-bottom:1px solid var(--border); padding:10px; font-size:14px}
-.table th{color:#344054; font-weight:900; background:#fafbff}
-.pill{display:inline-flex; padding:6px 10px; border-radius:999px; border:1px solid var(--border); font-size:12px; color:#344054; background:#fff}
-textarea{line-height:1.9}
-input,select,textarea{letter-spacing:.1px}
 
+/* Landing */
+.landing{
+  margin-top:18px;
+  min-height: calc(100vh - 120px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.landing-card{
+  width:min(860px, 100%);
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 48px 26px;
+  text-align:center;
+  color:#fff;
+  animation: popIn .35s ease both;
+}
+@keyframes popIn{
+  from{opacity:0; transform:translateY(10px) scale(.98)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.landing-logo{
+  width:110px;
+  height:110px;
+  object-fit:contain;
+  filter: drop-shadow(0 16px 28px rgba(0,0,0,.35));
+  margin-bottom: 14px;
+}
+.landing-title{
+  font-weight: 900;
+  font-size: 28px;
+  margin: 0;
+}
+.landing-sub{
+  opacity: .9;
+  margin-top: 6px;
+  font-size: 14px;
+}
