@@ -1,41 +1,58 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="panel">
-  <h2>سلام {{ s.name }}</h2>
+<div class="card">
+  <h2 class="h-title"><span class="icon">👤</span> پنل کاربر</h2>
+  <div class="muted">خوش آمدید، {{ s.name }} ✨</div>
 
-  <h3>ارسال محتوا</h3>
-  <form method="post" action="/content/submit" enctype="multipart/form-data" class="grid">
-    <div style="grid-column:1/-1"><label>عنوان</label><input name="title"></div>
-    <div style="grid-column:1/-1"><label>توضیح</label><textarea name="description"></textarea></div>
-    <div><label>حوزه</label><input name="field" value="عمومی"></div>
-    <div><label>نوع</label><input name="content_type" value="general"></div>
-    <div style="grid-column:1/-1"><label>فایل</label><input type="file" name="file"></div>
-    <div style="grid-column:1/-1"><button class="btn btn-primary">ثبت</button></div>
-  </form>
-</div>
+  <div class="kpi" style="margin-top:12px;">
+    <div class="box"><div class="num">{{ published|length }}</div><div class="lbl">📚 ویترین منتشر شده</div></div>
+    <div class="box"><div class="num">{{ mysubs|length }}</div><div class="lbl">📤 ارسال‌های من</div></div>
+    <div class="box"><div class="num">{{ s.phone }}</div><div class="lbl">📱 شماره همراه</div></div>
+  </div>
 
-<div class="panel">
-  <h3>منتشر شده</h3>
-  {% for it in published %}
-    <div style="padding:10px;border-bottom:1px solid #eee">
-      <a class="btn" href="/content/{{ it.id }}">{{ it.title }}</a>
-      <span> 👁 {{ it.views }} ❤️ {{ it.likes }}</span>
-    </div>
+  <div class="actions">
+    <a class="btn secondary" href="/logout">🚪 خروج</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <h3 class="h-title"><span class="icon">📚</span> ویترین دانش</h3>
+  {% if published %}
+    <table class="table">
+      <thead><tr><th>عنوان</th><th>حوزه</th><th>نوع</th><th>کد</th></tr></thead>
+      <tbody>
+      {% for x in published %}
+        <tr>
+          <td>{{ x.title }}</td>
+          <td><span class="pill">🏷️ {{ x.field }}</span></td>
+          <td><span class="pill">🧾 {{ x.content_type }}</span></td>
+          <td><span class="pill">🔖 {{ x.knowledge_code or "-" }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   {% else %}
-    <p>چیزی نیست</p>
-  {% endfor %}
-</div>
+    <div class="muted">فعلاً محتوایی منتشر نشده است.</div>
+  {% endif %}
 
-<div class="panel">
-  <h3>ارسالی‌های من</h3>
-  {% for it in mysubs %}
-    <div style="padding:10px;border-bottom:1px solid #eee">
-      <a class="btn" href="/content/{{ it.id }}">{{ it.title }}</a>
-      <span> وضعیت: {{ it.status }}</span>
-    </div>
+  <div class="hr"></div>
+
+  <h3 class="h-title"><span class="icon">📤</span> ارسال‌های من</h3>
+  {% if mysubs %}
+    <table class="table">
+      <thead><tr><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+      <tbody>
+      {% for x in mysubs %}
+        <tr>
+          <td>{{ x.title }}</td>
+          <td><span class="pill">📌 {{ x.status }}</span></td>
+          <td><span class="pill">🕒 {{ x.created_ts }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   {% else %}
-    <p>هیچی</p>
-  {% endfor %}
+    <div class="muted">هنوز محتوایی ارسال نکرده‌اید.</div>
+  {% endif %}
 </div>
 {% endblock %}
-
