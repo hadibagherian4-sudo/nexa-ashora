@@ -1,37 +1,74 @@
 {% extends "base.html" %}
+{% block title %}پنل داور | NEXA{% endblock %}
+
 {% block content %}
-<div class="card">
-  <h2 class="h-title"><span class="icon">🧑‍⚖️</span> پنل داور</h2>
-  <div class="muted">خوش آمدید، {{ s.name }} | حوزه: {{ s.field }}</div>
+<div class="panel">
+  <h2>پنل داور تخصصی</h2>
+  <p class="muted">سلام {{ referee_name }} 👋 | {{ referee_phone }}</p>
 
-  <div class="kpi" style="margin-top:12px;">
-    <div class="box"><div class="num">{{ tasks|length }}</div><div class="lbl">📌 ارجاعات من</div></div>
-    <div class="box"><div class="num">{{ s.phone }}</div><div class="lbl">📱 شماره داور</div></div>
-    <div class="box"><div class="num">{{ s.nid }}</div><div class="lbl">🪪 کد ملی</div></div>
-  </div>
+  {% if flash %}<div class="alert">{{ flash }}</div>{% endif %}
 
-  <div class="actions">
-    <a class="btn secondary" href="/logout">🚪 خروج</a>
-  </div>
-
-  <div class="hr"></div>
-
-  <h3 class="h-title"><span class="icon">📌</span> لیست ارجاعات</h3>
-  {% if tasks %}
-    <table class="table">
-      <thead><tr><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
-      <tbody>
-      {% for t in tasks %}
-        <tr>
-          <td>{{ t.title }}</td>
-          <td><span class="pill">📌 {{ t.decision }}</span></td>
-          <td><span class="pill">🕒 {{ t.created_ts }}</span></td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  {% if not assignments %}
+    <div class="info">محتوایی جهت ارزیابی به شما ارجاع نشده است.</div>
   {% else %}
-    <div class="muted">فعلاً ارجاعی برای شما ثبت نشده است.</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>لیست ارجاعات</h3>
+        <div class="stack">
+          {% for a in assignments %}
+            <a class="item-link {% if selected and selected.id==a.id %}active{% endif %}"
+               href="/referee?assign_id={{ a.id }}">
+              📄 {{ a.submission_title }}
+              <div class="muted small">وضعیت شما: {{ a.decision }}</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ثبت نتیجه ارزیابی</h3>
+
+        {% if not selected %}
+          <div class="info">از لیست سمت چپ یک مورد را انتخاب کنید.</div>
+        {% else %}
+          <div class="meta">
+            <b>{{ selected.submission_title }}</b><br/>
+            فرستنده: {{ selected.sender_name }} ({{ selected.sender_phone }})<br/>
+            حوزه: {{ selected.field }} | نوع: {{ selected.content_type }}
+          </div>
+
+          <div class="desc">{{ selected.description }}</div>
+
+          <div class="actions">
+            <a class="btn" href="/content/{{ selected.submission_id }}">🔎 مشاهده محتوا</a>
+            {% if selected.file_name %}
+              <a class="btn" href="/content/{{ selected.submission_id }}/download">⬇️ دانلود فایل</a>
+            {% endif %}
+          </div>
+
+          <form class="form" method="post" action="/referee/review/{{ selected.id }}">
+            <label>نظر شما</label>
+            <select name="decision" required>
+              <option value="waiting_referee" {% if selected.decision=="waiting_referee" %}selected{% endif %}>در حال بررسی</option>
+              <option value="correction_needed" {% if selected.decision=="correction_needed" %}selected{% endif %}>نیاز به اصلاح</option>
+              <option value="rejected" {% if selected.decision=="rejected" %}selected{% endif %}>عدم تایید</option>
+              <option value="recommend_publish" {% if selected.decision=="recommend_publish" %}selected{% endif %}>تایید و پیشنهاد انتشار</option>
+            </select>
+
+            <label>نکات اصلاحی / دلایل داوری</label>
+            <textarea name="feedback" rows="5">{{ selected.feedback or "" }}</textarea>
+
+            <label>امتیاز (۰ تا ۱۰۰)</label>
+            <input type="number" name="score" min="0" max="100" value="{{ selected.score or 0 }}" />
+
+            <label>کد دانشی پیشنهادی (برای پیشنهاد انتشار)</label>
+            <input name="suggested_knowledge_code" value="{{ selected.suggested_knowledge_code or '' }}" />
+
+            <button class="btn btn-primary" type="submit">ثبت و ارسال برای مدیر</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
   {% endif %}
 </div>
 {% endblock %}
