@@ -1,1 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  {% if not row %}
+    <p>محتوا پیدا نشد</p>
+  {% else %}
+    <h2>{{ row.title }}</h2>
+    <p>{{ row.description }}</p>
+    <p>👁 {{ row.views }} ❤️ {{ row.likes }} | وضعیت: {{ row.status }}</p>
+
+    {% if s.role == "user" %}
+    <form method="post" action="/content/{{ row.id }}/like">
+      <button class="btn btn-primary">لایک / آنلایک</button>
+    </form>
+    {% endif %}
+
+    <hr>
+    <h3>نظرات</h3>
+    {% for c in comments %}
+      <div style="padding:8px 0;border-bottom:1px solid #eee"><b>{{ c.user_name }}:</b> {{ c.text }}</div>
+    {% else %}
+      <p>نظری نیست</p>
+    {% endfor %}
+
+    <form method="post" action="/content/{{ row.id }}/comment" style="margin-top:10px">
+      <textarea name="text" placeholder="نظر..."></textarea>
+      <button class="btn btn-primary" style="margin-top:8px">ارسال نظر</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}
 
