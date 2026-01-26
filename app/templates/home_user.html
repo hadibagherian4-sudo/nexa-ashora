@@ -1,1 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>سلام {{ s.name }}</h2>
+
+  <h3>ارسال محتوا</h3>
+  <form method="post" action="/content/submit" enctype="multipart/form-data" class="grid">
+    <div style="grid-column:1/-1"><label>عنوان</label><input name="title"></div>
+    <div style="grid-column:1/-1"><label>توضیح</label><textarea name="description"></textarea></div>
+    <div><label>حوزه</label><input name="field" value="عمومی"></div>
+    <div><label>نوع</label><input name="content_type" value="general"></div>
+    <div style="grid-column:1/-1"><label>فایل</label><input type="file" name="file"></div>
+    <div style="grid-column:1/-1"><button class="btn btn-primary">ثبت</button></div>
+  </form>
+</div>
+
+<div class="panel">
+  <h3>منتشر شده</h3>
+  {% for it in published %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <a class="btn" href="/content/{{ it.id }}">{{ it.title }}</a>
+      <span> 👁 {{ it.views }} ❤️ {{ it.likes }}</span>
+    </div>
+  {% else %}
+    <p>چیزی نیست</p>
+  {% endfor %}
+</div>
+
+<div class="panel">
+  <h3>ارسالی‌های من</h3>
+  {% for it in mysubs %}
+    <div style="padding:10px;border-bottom:1px solid #eee">
+      <a class="btn" href="/content/{{ it.id }}">{{ it.title }}</a>
+      <span> وضعیت: {{ it.status }}</span>
+    </div>
+  {% else %}
+    <p>هیچی</p>
+  {% endfor %}
+</div>
+{% endblock %}
 
