@@ -1,47 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2 class="h-title"><span class="icon">📝</span> ثبت‌نام کاربر</h2>
-  <div class="muted">پس از ثبت‌نام، به صفحه ورود برمی‌گردید.</div>
+  <div class="h-title">
+    <span class="icon">📝</span>
+    <h2 style="margin:0;">ثبت‌نام کاربر</h2>
+  </div>
+  <div class="muted">بعد از ثبت‌نام، به صفحه ورود برمی‌گردید.</div>
 
   {% if error %}
-    <div class="error">⚠️ {{ error }}</div>
+    <div class="error">{{ error }}</div>
   {% endif %}
 
-  <form method="post" action="/register">
+  <form method="post" action="/signup">
     <div class="row">
       <div>
-        <label><span class="icon">🙍‍♂️</span> نام و نام خانوادگی</label>
+        <label>👤 نام و نام خانوادگی</label>
         <input name="name" required>
       </div>
       <div>
-        <label><span class="icon">📱</span> شماره همراه</label>
-        <input name="phone" placeholder="مثال: 0912xxxxxxx" required>
+        <label>📱 شماره همراه</label>
+        <input name="phone" required>
       </div>
     </div>
 
     <div class="row">
       <div>
-        <label><span class="icon">🪪</span> کد ملی</label>
-        <input name="nid" placeholder="۱۰ رقم" required>
+        <label>🪪 کد ملی</label>
+        <input name="nid" required placeholder="۱۰ رقم">
       </div>
       <div></div>
     </div>
 
     <div class="row">
       <div>
-        <label><span class="icon">🔑</span> رمز عبور</label>
+        <label>🔑 رمز عبور</label>
         <input type="password" name="password1" required>
       </div>
       <div>
-        <label><span class="icon">🔁</span> تکرار رمز عبور</label>
+        <label>🔁 تکرار رمز عبور</label>
         <input type="password" name="password2" required>
       </div>
     </div>
 
     <div class="actions">
       <button class="btn" type="submit">✅ ایجاد حساب</button>
-      <a class="btn secondary" href="/login">↩️ ورود</a>
+      <a class="btn secondary" href="/login">🔐 برگشت به ورود</a>
       <a class="btn secondary" href="/start">🏠 صفحه شروع</a>
     </div>
   </form>
