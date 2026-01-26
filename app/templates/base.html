@@ -7,29 +7,34 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/app.css" />
 </head>
-<body>
+
+<body class="{{ body_class or '' }}">
   <div class="wrap">
+
     <div class="topbar">
       <div class="brand">
-        <!-- اگر لوگوت پس‌زمینه سفید دارد، باید فایل PNG شفاف جایگزین شود -->
-        <img src="/static/logo.png" alt="لوگو سازمان">
-        <div>
+        {# در صفحه landing لوگو داخل منوبار نمایش داده نشود #}
+        {% if not hide_top_logo %}
+          <img src="/static/logo.png" alt="لوگو سازمان">
+        {% endif %}
+
+        <div style="display:flex; flex-direction:column; line-height:1.1;">
           <div class="brand-title">نکسا (NEXA)</div>
           <div class="brand-sub">نظام یکپارچه محتوا عاشورا</div>
         </div>
       </div>
 
       <div class="badge">
-        <span>ℹ️</span>
-        <span>{{ subtitle or "" }}</span>
+        {{ subtitle or "" }}
       </div>
     </div>
 
     {% block content %}{% endblock %}
+
   </div>
 </body>
 </html>
