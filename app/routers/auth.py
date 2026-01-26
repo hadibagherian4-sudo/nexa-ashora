@@ -87,4 +87,4 @@ def signup(
 @router.post("/logout")
 def logout(request: Request):
     request.session.clear()
-    return RedirectResponse("/auth/login", status_code=303
+    return RedirectResponse("/auth/login", status_code=303)
