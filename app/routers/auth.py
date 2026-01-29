@@ -2,89 +2,92 @@ import time
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+
+from ..paths import TEMPLATES_DIR
 from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..models import User, Referee
 from ..security import hash_password, verify_password
+from ..deps import set_session, clear_session
 from ..config import settings
 
-router = APIRouter(prefix="/auth", tags=["auth"])
-templates = Jinja2Templates(directory="app/templates")
+router = APIRouter(tags=["auth"])
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+def make_id(prefix: str):
+    return f"{prefix}{int(time.time() * 1000)}"
+
 
 @router.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse("login.html", {"request": request})
+
 
 @router.post("/login")
 def login(
     request: Request,
     db: Session = Depends(get_db),
-    role: str = Form(...),
     phone: str = Form(...),
-    nid: str = Form(""),
-    password: str = Form(...)
+    password: str = Form(...),
 ):
-    phone = (phone or "").strip()
-    nid = (nid or "").strip()
+    phone = phone.strip()
 
-    # user
-    if role == "user":
-        u = db.query(User).filter(User.phone == phone).first()
-        if not u or not verify_password(password, u.password_hash):
-            return templates.TemplateResponse("login.html", {"request": request, "error": "کاربر یافت نشد یا رمز اشتباه است."})
-        request.session["auth"] = {"role": "user", "phone": u.phone, "name": u.name, "nid": u.nid}
-        return RedirectResponse("/", status_code=303)
-
-    # manager (fixed)
-    if role == "manager":
-        if phone != settings.MANAGER_PHONE or nid != settings.MANAGER_NID or password != settings.MANAGER_PASSWORD:
-            return templates.TemplateResponse("login.html", {"request": request, "error": "مشخصات مدیر سامانه اشتباه است."})
-        request.session["auth"] = {"role": "manager", "phone": phone, "name": "مدیر سامانه", "nid": nid}
+    # manager fixed login
+    if phone == settings.MANAGER_PHONE and password == settings.MANAGER_PASSWORD:
+        set_session(request, {"role": "manager", "phone": phone, "name": "مدیر", "nid": settings.MANAGER_NID})
         return RedirectResponse("/", status_code=303)
 
     # referee
-    if role == "referee":
-        r = db.query(Referee).filter(Referee.phone == phone, Referee.nid == nid, Referee.is_active == 1).first()
-        if not r or not verify_password(password, r.password_hash):
-            return templates.TemplateResponse("login.html", {"request": request, "error": "داور یافت نشد یا مشخصات اشتباه است."})
-        request.session["auth"] = {"role": "referee", "phone": r.phone, "name": f"{r.first_name} {r.last_name}", "nid": r.nid}
+    r = db.query(Referee).filter(Referee.phone == phone, Referee.is_active == 1).first()
+    if r and verify_password(password, r.password_hash):
+        set_session(request, {"role": "referee", "phone": r.phone, "name": f"{r.first_name} {r.last_name}", "nid": r.nid})
         return RedirectResponse("/", status_code=303)
 
-    return templates.TemplateResponse("login.html", {"request": request, "error": "نقش نامعتبر است."})
+    # user
+    u = db.query(User).filter(User.phone == phone).first()
+    if u and verify_password(password, u.password_hash):
+        set_session(request, {"role": "user", "phone": u.phone, "name": u.full_name, "nid": u.nid})
+        return RedirectResponse("/", status_code=303)
 
-@router.post("/signup")
-def signup(
+    return templates.TemplateResponse("login.html", {"request": request, "error": "شماره یا رمز اشتباه است"})
+
+
+@router.get("/register")
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+@router.post("/register")
+def register(
     request: Request,
     db: Session = Depends(get_db),
-    name: str = Form(...),
-    phone: str = Form(...),
+    full_name: str = Form(...),
     nid: str = Form(...),
+    phone: str = Form(...),
     password: str = Form(...),
-    password2: str = Form(...),
 ):
-    phone = (phone or "").strip()
-    nid = (nid or "").strip()
-    name = (name or "").strip()
+    phone = phone.strip()
+    if db.query(User).filter(User.phone == phone).first():
+        return templates.TemplateResponse("register.html", {"request": request, "error": "این شماره قبلاً ثبت شده"})
 
-    if not name or not phone or not nid or not password:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "همه فیلدها الزامی است."})
-    if password != password2:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "رمز عبور و تکرار آن یکسان نیست."})
-
-    u = db.query(User).filter(User.phone == phone).first()
-    if u:
-        u.name = name
-        u.nid = nid
-        u.password_hash = hash_password(password)
-    else:
-        u = User(phone=phone, name=name, nid=nid, password_hash=hash_password(password), created_ts=time.time())
-        db.add(u)
+    u = User(
+        id=make_id("u"),
+        full_name=full_name.strip(),
+        nid=nid.strip(),
+        phone=phone,
+        password_hash=hash_password(password),
+        created_ts=time.time(),
+    )
+    db.add(u)
     db.commit()
 
-    return RedirectResponse("/auth/login", status_code=303)
+    set_session(request, {"role": "user", "phone": u.phone, "name": u.full_name, "nid": u.nid})
+    return RedirectResponse("/", status_code=303)
 
-@router.post("/logout")
+
+@router.get("/logout")
 def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse("/auth/login", status_code=303)
+    clear_session(request)
+    return RedirectResponse("/login", status_code=303)
