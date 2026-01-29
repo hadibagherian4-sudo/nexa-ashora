@@ -1,7 +1,10 @@
 import time
+from typing import Optional
 from fastapi import APIRouter, Request, Depends, Form, UploadFile, File
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+
+from ..paths import TEMPLATES_DIR
 from sqlalchemy.orm import Session
 
 from ..db import get_db
@@ -14,7 +17,7 @@ from ..models import (
 from ..security import hash_password
 
 router = APIRouter(tags=["home"])
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 def make_id(prefix: str):
     return f"{prefix}{int(time.time() * 1000)}"
@@ -81,7 +84,7 @@ def user_submit(
     field: str = Form(...),
     content_type: str = Form(...),
     suggested_topic_id: str = Form(""),
-    file: UploadFile | None = File(None),
+    file: Optional[UploadFile] = File(None),
 ):
     b = file.file.read() if file else None
     mime = file.content_type if file else None
@@ -121,7 +124,7 @@ def user_resubmit(
     description: str = Form(""),
     field: str = Form(...),
     content_type: str = Form(...),
-    file: UploadFile | None = File(None),
+    file: Optional[UploadFile] = File(None),
 ):
     s = db.query(Submission).filter(Submission.id == sid, Submission.sender_phone == auth["phone"]).first()
     if not s:
@@ -220,150 +223,105 @@ def manager_finalize(
     auth=Depends(require_role("manager")),
     db: Session = Depends(get_db),
     submission_id: str = Form(...),
-    final_status: str = Form(...),  # published/correction_needed/rejected/waiting_manager
+    action: str = Form(...),  # publish/reject/correction_needed
     knowledge_code: str = Form("")
 ):
     s = db.query(Submission).filter(Submission.id == submission_id).first()
     if not s:
         return RedirectResponse("/", status_code=303)
 
-    if final_status == "published":
-        if not (knowledge_code or "").strip():
-            # بدون پیام خطا در UI ساده نگه داشتیم
-            return RedirectResponse("/", status_code=303)
+    if action == "publish":
         s.status = "published"
-        s.knowledge_code = knowledge_code.strip()
+        s.knowledge_code = (knowledge_code or "").strip()
+    elif action == "reject":
+        s.status = "rejected"
     else:
-        s.status = final_status
+        s.status = "correction_needed"
 
     db.commit()
     return RedirectResponse("/", status_code=303)
 
-# ---------- MANAGER: add/edit referee ----------
-@router.post("/manager/referee/upsert")
-def manager_referee_upsert(
+# ---------- MANAGER: create topic/research/doc ----------
+@router.post("/manager/topic")
+def manager_topic(
+    request: Request,
+    auth=Depends(require_role("manager")),
+    db: Session = Depends(get_db),
+    title: str = Form(...),
+):
+    t = Topic(id=make_id("t"), title=title.strip(), created_ts=time.time())
+    db.add(t)
+    db.commit()
+    return RedirectResponse("/", status_code=303)
+
+@router.post("/manager/research")
+def manager_research(
+    request: Request,
+    auth=Depends(require_role("manager")),
+    db: Session = Depends(get_db),
+    title: str = Form(...),
+    body: str = Form(""),
+):
+    r = Research(id=make_id("r"), title=title.strip(), body=(body or "").strip(), created_ts=time.time())
+    db.add(r)
+    db.commit()
+    return RedirectResponse("/", status_code=303)
+
+@router.post("/manager/document")
+def manager_document(
+    request: Request,
+    auth=Depends(require_role("manager")),
+    db: Session = Depends(get_db),
+    title: str = Form(...),
+    body: str = Form(""),
+):
+    d = Document(id=make_id("d"), title=title.strip(), body=(body or "").strip(), created_ts=time.time())
+    db.add(d)
+    db.commit()
+    return RedirectResponse("/", status_code=303)
+
+# ---------- MANAGER: add referee ----------
+@router.post("/manager/referee")
+def manager_referee(
     request: Request,
     auth=Depends(require_role("manager")),
     db: Session = Depends(get_db),
     first_name: str = Form(...),
     last_name: str = Form(...),
-    phone: str = Form(...),
     nid: str = Form(...),
+    phone: str = Form(...),
     field: str = Form(...),
     password: str = Form(...),
-    is_active: int = Form(1)
 ):
-    r = db.query(Referee).filter(Referee.phone == phone).first()
-    if r:
-        r.first_name = first_name.strip()
-        r.last_name = last_name.strip()
-        r.nid = nid.strip()
-        r.field = field
-        r.password_hash = hash_password(password)
-        r.is_active = 1 if int(is_active) else 0
-    else:
-        r = Referee(
-            phone=phone.strip(),
-            first_name=first_name.strip(),
-            last_name=last_name.strip(),
-            nid=nid.strip(),
-            field=field,
-            password_hash=hash_password(password),
-            is_active=1 if int(is_active) else 0,
-            created_ts=time.time()
-        )
-        db.add(r)
-    db.commit()
-    return RedirectResponse("/", status_code=303)
+    if db.query(Referee).filter(Referee.phone == phone.strip()).first():
+        return RedirectResponse("/", status_code=303)
 
-@router.post("/manager/referee/delete")
-def manager_referee_delete(
-    request: Request,
-    auth=Depends(require_role("manager")),
-    db: Session = Depends(get_db),
-    phone: str = Form(...),
-):
-    db.query(Referee).filter(Referee.phone == phone).delete()
-    db.commit()
-    return RedirectResponse("/", status_code=303)
-
-# ---------- MANAGER: topic/research/doc add ----------
-@router.post("/manager/topic/add")
-def manager_topic_add(
-    request: Request,
-    auth=Depends(require_role("manager")),
-    db: Session = Depends(get_db),
-    title: str = Form(...),
-    field: str = Form(...),
-    description: str = Form(""),
-    file: UploadFile | None = File(None),
-):
-    t = Topic(
-        id=make_id("top"),
-        title=title.strip(),
+    r = Referee(
+        id=make_id("rf"),
+        first_name=first_name.strip(),
+        last_name=last_name.strip(),
+        nid=nid.strip(),
+        phone=phone.strip(),
         field=field,
-        description=(description or "").strip(),
-        file_name=file.filename if file else None,
-        file_bytes=file.file.read() if file else None,
-        created_ts=time.time()
-    )
-    db.add(t)
-    db.commit()
-    return RedirectResponse("/", status_code=303)
-
-@router.post("/manager/research/add")
-def manager_research_add(
-    request: Request,
-    auth=Depends(require_role("manager")),
-    db: Session = Depends(get_db),
-    title: str = Form(...),
-    field: str = Form(...),
-    summary: str = Form(""),
-    file: UploadFile | None = File(None),
-):
-    r = Research(
-        id=make_id("res"),
-        title=title.strip(),
-        field=field,
-        summary=(summary or "").strip(),
-        file_name=file.filename if file else None,
-        file_bytes=file.file.read() if file else None,
-        created_ts=time.time()
+        password_hash=hash_password(password),
+        is_active=1,
+        created_ts=time.time(),
     )
     db.add(r)
     db.commit()
     return RedirectResponse("/", status_code=303)
 
-@router.post("/manager/document/add")
-def manager_document_add(
-    request: Request,
-    auth=Depends(require_role("manager")),
-    db: Session = Depends(get_db),
-    title: str = Form(...),
-    file: UploadFile = File(...),
-):
-    d = Document(
-        id=make_id("doc"),
-        title=title.strip(),
-        file_name=file.filename,
-        file_bytes=file.file.read(),
-        created_ts=time.time()
-    )
-    db.add(d)
-    db.commit()
-    return RedirectResponse("/", status_code=303)
-
-# ---------- MANAGER: forum approve/reject ----------
-@router.post("/manager/forum/moderate")
-def manager_forum_moderate(
+# ---------- MANAGER: approve forum post ----------
+@router.post("/manager/forum/approve")
+def approve_forum_post(
     request: Request,
     auth=Depends(require_role("manager")),
     db: Session = Depends(get_db),
     post_id: str = Form(...),
-    action: str = Form(...),  # approved/rejected
+    action: str = Form(...),  # approve/reject
 ):
     p = db.query(ForumPost).filter(ForumPost.id == post_id).first()
     if p:
-        p.status = action
+        p.status = "published" if action == "approve" else "rejected"
         db.commit()
     return RedirectResponse("/", status_code=303)
